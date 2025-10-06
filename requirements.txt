@@ -1,0 +1,9 @@
+numpy
+jax
+pymanopt
+matplotlib
+autograd
+scipy
+cvxpy
+pandas
+nfoursid
