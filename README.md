@@ -9,9 +9,13 @@ The experiments demonstrate how subspace learning on the **flag manifold** can b
 FRONT_experiments/
 
 ├── flag.py                     # Implementation of the Flag manifold and FRONT algorithm
+
 ├── utils.py                    # Helper functions for data handling, plotting, etc.
+
 ├── data_driven_simulation.ipynb # Notebook for data-driven prediction experiments
+
 ├── geodesic_tracking.ipynb     # Notebook for subspace and geodesic tracking demonstrations
+
 ├── requirements.txt            # Dependencies for running the experiments
 
 ## ⚙️ Setup
