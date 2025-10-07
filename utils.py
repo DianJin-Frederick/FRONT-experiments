@@ -1,12 +1,18 @@
 import matplotlib.pyplot as plt
 import autograd.numpy as np
+import pandas as pd
 import os
-import matplotlib
-from mpl_toolkits.mplot3d import Axes3D
-# matplotlib.use("Qt5Agg")
-import os
-SAVE_FOLDER = 'videos'
-os.makedirs(SAVE_FOLDER, exist_ok=True)
+
+plt.rcParams.update({
+    "font.family": "serif",             # or "sans-serif", "monospace"
+    "font.serif": ["Times New Roman"],  # or "Palatino", "Georgia", etc.
+    "font.size": 12,                    # default text size
+    "axes.titlesize": 13,               # title font size
+    "axes.labelsize": 12,               # x/y label font size
+    "legend.fontsize": 11,              # legend font size
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+})
 
 soft_colors = {
     "soft_red": "#E57373",   # Muted red
@@ -68,6 +74,90 @@ def compute_principal_angles(A, B):
             principal_angles[j] = 180 - principal_angles[j]
 
     return principal_angles
+
+# ---------- plotters for data-driven simulation experiments ----------
+def plot_nsr_cpe_comparison(file_path, exclude: tuple[str, ...] = ("No learning",)):
+    df = pd.read_csv(file_path)
+    df = df.sort_values("NSR")
+    x = df["NSR"].to_numpy(dtype=float)
+
+    def is_triplet_head(col):
+        return (
+            col != "NSR"
+            and f"{col} q30" in df.columns
+            and f"{col} q70" in df.columns
+        )
+
+    color_map = {
+        "No learning": "#6B7280",   # gray
+        "N4SID": "#F59E0B",         # amber
+        "PAST": "#0EA5E9",          # cyan
+        "Gr(9)": "#14B8A6",         # teal
+        "Gr(10)": "#8B5CF6",        # purple
+        "Gr(11)": "#F97316",        # orange
+        "Flag(8,...,15)": "#22C55E", # green
+        "Flag(9, 10)": "#ef2d5a",   # red
+    }
+    all_models = [m for m in color_map.keys() if m in df.columns and m not in exclude]
+    colors = {m: color_map[m] for m in all_models}
+
+    plt.figure(figsize=(7, 5.5), dpi=300)
+    for model in all_models:
+        med = df[model].to_numpy(dtype=float)
+        q30 = df[f"{model} q30"].to_numpy(dtype=float)
+        q70 = df[f"{model} q70"].to_numpy(dtype=float)
+        plt.plot(x, med, marker="o", linewidth=2, label=model, color=colors[model])
+        plt.fill_between(x, q30, q70, color=colors[model], alpha=0.18)
+
+    plt.xlabel("Noise-to-signal ratio (NSR)")
+    plt.ylabel("Median cumulative prediction error")
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.legend(loc="best", fontsize=9)
+    plt.title("CPE vs. NSR for Various Models")
+    plt.tight_layout()
+    plt.show()
+
+def plot_trajectories(trajectory_1, trajectory_2, title):
+    plt.figure(figsize=(6, 4))
+    labels=("True", "Prediction")
+    plt.plot(trajectory_1.ravel(), label=labels[0])
+    plt.plot(trajectory_2.ravel(), label=labels[1])
+    plt.title(title)
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_median_prediction_errors(pred_error_trials, labels=None, title="Median Prediction Error Across Time"):
+    num_trials, num_models, _ = pred_error_trials.shape
+    x = np.arange(T_SIM)
+    med_errors = np.median(pred_error_trials, axis=0)
+    q30 = np.percentile(pred_error_trials, 30, axis=0)
+    q70 = np.percentile(pred_error_trials, 70, axis=0)
+    
+    if labels is None:
+        labels = [f"Model {i+1}" for i in range(num_models)]
+    
+    colors = plt.cm.tab10(np.linspace(0, 1, num_models))
+    plt.figure(figsize=(7, 4))
+    for i in range(num_models):
+        plt.plot(
+            x, med_errors[i],
+            label=labels[i],
+            color=colors[i],
+            linewidth=1.8
+        )
+        plt.fill_between(
+            x, q30[i], q70[i],
+            color=colors[i], alpha=0.25
+        )
+    plt.title(title, fontsize=12)
+    plt.xlabel("Time step $t$", fontsize=11)
+    plt.ylabel("Median Prediction Error", fontsize=11)
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.legend(fontsize=9)
+    plt.tight_layout()
+    plt.show()
 
 
 
