@@ -159,8 +159,88 @@ def plot_median_prediction_errors(pred_error_trials, labels=None, title="Median 
     plt.tight_layout()
     plt.show()
 
+def plot_flag_vs_gr(file_path):
+        df = pd.read_csv(file_path)
+        dims = np.arange(8, 8 + len(df))  # 8–15
 
+        # Extract columns
+        fl_med = df.iloc[:, 1].to_numpy()
+        fl_iqr = df.iloc[:, 2].to_numpy()
+        gr_med = df.iloc[:, 3].to_numpy()
+        gr_iqr = df.iloc[:, 4].to_numpy()
+        x = np.arange(len(dims))
+        width = 0.35
 
+        fig, ax = plt.subplots(figsize=(8, 5.5))
+        bars_fl = ax.bar(
+            x - width/2, fl_med, width,
+            yerr=fl_iqr/2, capsize=4,
+            label="Flag", alpha=0.9, color="#3B82F6"
+        )
+        bars_gr = ax.bar(
+            x + width/2, gr_med, width,
+            yerr=gr_iqr/2, capsize=4,
+            label="Gr", alpha=0.9, color="#10B981"
+        )
+    
+        # Annotate numbers above bars
+        for bar in bars_fl:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}',
+                        xy=(bar.get_x() + bar.get_width()/2, height), xytext=(0, 3), 
+                        textcoords="offset points", ha='center', va='bottom', fontsize=8)
+    
+        for bar in bars_gr:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}',
+                        xy=(bar.get_x() + bar.get_width()/2, height), xytext=(0, 3),
+                        textcoords="offset points", ha='center', va='bottom', fontsize=8)
+    
+        ax.set_xticks(x)
+        ax.set_xticklabels([str(d) for d in dims])
+        ax.set_xlabel("Subspace Dimension")
+        ax.set_ylabel("Median Cumulative Error")
+        ax.set_title("Flag vs Grassmann Cumulative Error (Median + IQR)")
+        ax.legend()
+        ax.grid(axis="y", linestyle="--", alpha=0.6)
+    
+        plt.tight_layout()
+        plt.show()
+
+def plot_median_cum_errors_all_models(file_path):
+        df = pd.read_csv(file_path)
+        model_names = [
+        "No learning", "N4SID", "PAST", "Flag(9,10)",
+        "Gr(9)", "Gr(10)", "Gr(11)", "Flag(8,…,15)"
+        ]  
+        med = df.iloc[:, 0].to_numpy()
+        q30 = df.iloc[:, 1].to_numpy()
+        q70 = df.iloc[:, 2].to_numpy()
+        yerr_lower = med - q30
+        yerr_upper = q70 - med
+        yerr = np.vstack([yerr_lower, yerr_upper])
+        x = np.arange(len(model_names))
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        bars = ax.bar(x, med, color="#3B82F6", alpha=0.8, capsize=4)
+        ax.errorbar(x, med, yerr=yerr, fmt='none', ecolor='black', capsize=4, elinewidth=1)
+
+        # Add numeric labels on top of bars
+        for rect, val in zip(bars, med):
+            ax.text(
+                rect.get_x() + rect.get_width()/2,
+                rect.get_height() + 0.05,
+                f"{val:.2f}",
+                ha='center', va='bottom', fontsize=9
+            )
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(model_names, rotation=25, ha='right')
+        ax.set_ylabel("Median Cumulative Error")
+        ax.set_title("Median Cumulative Errors with IQR Whiskers")
+        ax.grid(axis="y", linestyle="--", alpha=0.5)
+        plt.tight_layout()
+        plt.show()
 
 
 
