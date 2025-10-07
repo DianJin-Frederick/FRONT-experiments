@@ -160,10 +160,10 @@ def plot_median_prediction_errors(pred_error_trials, labels=None, title="Median 
     plt.show()
 
 def plot_flag_vs_gr(file_path):
-        df = pd.read_csv(file_path)
-        dims = np.arange(8, 8 + len(df))  # 8–15
+        df = pd.read_csv(file_path, header=None, 
+                         names=["dim", "flag_med", "flag_iqr", "gr_med", "gr_iqr"])
 
-        # Extract columns
+        dims   = df["dim"].to_numpy()
         fl_med = df.iloc[:, 1].to_numpy()
         fl_iqr = df.iloc[:, 2].to_numpy()
         gr_med = df.iloc[:, 3].to_numpy()
