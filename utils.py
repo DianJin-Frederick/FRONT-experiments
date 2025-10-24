@@ -36,7 +36,7 @@ def chordal_distance(A, B):
     nonzero_singular_values = np.linalg.svd(A.T @ B, full_matrices=False)[1]
     distance = np.linalg.norm(np.sin(np.arccos(np.clip(nonzero_singular_values, -1, 1))))
 
-    return np.sqrt(distance)
+    return distance
 
 def chordal_metric(A, B):
     """
